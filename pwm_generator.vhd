@@ -4,29 +4,38 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 entity pwm_generator is
-	port (CLK : in  std_logic;
-         W   : in  std_logic_vector(3 downto 0);
-         PWM : out std_logic);	
+	port (CLK : in  std_logic; 			--The choosen input clock
+         W   : in  std_logic_vector(3 downto 0); 	--choose a number from 0 to 15
+         RST : in  std_logic; 				--The Reset Button
+         PWM : out std_logic);		  		--The Output with the desired duty cycle
 end pwm_generator;
 
 architecture behaviour of pwm_generator is
 
 	signal COUNTER : integer;
-	signal w1 		: integer;		
+	signal W1 		: integer;		
 	
-	begin process (CLK)
+	begin process (CLK,RST)
 		begin
-			COUNTER <= 0 ;
-			COUNTER <= COUNTER +1;
-			COUNTER <= conv_integer(unsigned(W));
 			
-			if (CLK'event AND CLK='1') then
-				if (W = 0000) then
+			if (RST = '1') then
+				COUNTER <= 0;
+				W1      <= 1;
+				PWM     <= '0';
+			elsif (CLK'event and CLK='1') then
+				if W="0000" then
 					PWM <= '1';
-				elsif (COUNTER >= w) then
-					PWM <= '0';
-				else 
-					PWM <= '1';
+				else
+					COUNTER <= COUNTER + 1;
+					W1      <= conv_integer(unsigned(W));
+					if (COUNTER < W1) then
+						PWM <= '1';
+					else
+						PWM <= '0';
+							if (COUNTER =15) then
+								COUNTER <= 0;
+							end if;
+					end if;
 				end if;
 			end if;
 	end process;	
